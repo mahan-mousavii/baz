@@ -16,28 +16,68 @@ NAVIGATION = (
 
 SERVICES = (
     {
-        'number': '01',
-        'title': 'Marketing Strategy',
+        'title': 'Direction',
+        'subtitle': 'Marketing & Brand Strategy',
         'description': (
-            'Clear direction for your brand, content, and campaigns.'
+            'We define your audience, sharpen your message, and build '
+            'practical marketing plans that give your brand a clear '
+            'direction — from positioning to campaign planning.'
         ),
+        'icon': 'compass',
     },
     {
-        'number': '02',
-        'title': 'Content & Production',
+        'title': 'Creation',
+        'subtitle': 'Content & Visual Production',
         'description': (
-            'Photography, video, and digital content crafted around your '
-            'business.'
+            'We turn ideas into photography, video, social content, and '
+            'AI-powered visuals — bringing your brand’s personality and '
+            'message to life through thoughtful creative production.'
         ),
+        'icon': 'clapperboard',
     },
     {
-        'number': '03',
-        'title': 'AI Creative Production',
+        'title': 'Presence',
+        'subtitle': 'Social Media Management',
         'description': (
-            'Concept-led visuals and videos using AI as a creative tool.'
+            'We plan, create, and publish consistent social content, '
+            'keeping your brand’s voice cohesive and using performance '
+            'insights to refine its presence over time.'
         ),
+        'icon': 'message-circle',
+    },
+    {
+        'title': 'Growth',
+        'subtitle': 'Digital Marketing & Campaigns',
+        'description': (
+            'We plan and manage digital campaigns that connect your brand '
+            'with relevant audiences, then measure and refine performance '
+            'to encourage meaningful enquiries and action.'
+        ),
+        'icon': 'trending-up',
     },
 )
+
+DECORATIONS = {
+    'hero': (
+        ('camera', 'decor-camera'),
+        ('sparkles', 'decor-sparkles'),
+    ),
+    'services': (
+        ('clapperboard', 'decor-clapperboard'),
+        ('pen-tool', 'decor-pen-tool'),
+    ),
+    'tools': (
+        ('megaphone', 'decor-megaphone'),
+        ('message-circle', 'decor-message-circle'),
+    ),
+    'about': (
+        ('aperture', 'decor-aperture'),
+        ('bar-chart', 'decor-bar-chart'),
+    ),
+    'contact': (
+        ('video', 'decor-video'),
+    ),
+}
 
 PROJECTS = (
     {

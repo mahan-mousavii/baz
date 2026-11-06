@@ -14,9 +14,34 @@ def test_home_page(httpreq):
             '<span>Distinctive content.</span></h1>'
             in response.text
         )
+        assert (
+            '<h2 id="services-title">From clear direction to creative '
+            'execution.</h2>'
+            in response.text
+        )
+        assert (
+            'Strategy, content, social media, and campaigns — working '
+            'together for your brand.'
+            in response.text
+        )
         assert 'href="#free-tools"' in response.text
         assert 'href="#services-work"' in response.text
         assert 'href="#contact"' in response.text
+        for service in (
+            'Direction', 'Marketing & Brand Strategy',
+            'Creation', 'Content & Visual Production',
+            'Presence', 'Social Media Management',
+            'Growth', 'Digital Marketing & Campaigns',
+        ):
+            assert service in response.text
+        assert response.text.count('class="service-row"') == 4
+        assert response.text.count('class="decorative-layer"') == 5
+        for icon in (
+            'decor-camera', 'decor-sparkles', 'decor-clapperboard',
+            'decor-pen-tool', 'decor-megaphone', 'decor-message-circle',
+            'decor-aperture', 'decor-bar-chart', 'decor-video',
+        ):
+            assert icon in response.text
         assert 'One-Page Marketing Plan' in response.text
         assert '30-Day Content Calendar' in response.text
         assert 'Mobile Video Checklist' in response.text

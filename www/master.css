@@ -67,6 +67,104 @@ a {
   border-bottom: 1px solid rgb(245 222 162 / 15%);
 }
 
+.icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.decorated-section {
+  position: relative;
+  isolation: isolate;
+}
+
+.decorated-section > :not(.decorative-layer) {
+  position: relative;
+  z-index: 2;
+}
+
+.decorative-layer {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.background-icon {
+  position: absolute;
+  display: block;
+  width: var(--icon-size, 34px);
+  height: var(--icon-size, 34px);
+  color: #ffffff;
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+.decor-camera {
+  top: 14px;
+  right: 8%;
+  --icon-size: 42px;
+  transform: rotate(12deg);
+}
+
+.decor-sparkles {
+  bottom: 16px;
+  left: 12%;
+  --icon-size: 29px;
+  transform: rotate(-11deg);
+}
+
+.decor-clapperboard {
+  top: 16px;
+  right: 9%;
+  --icon-size: 38px;
+  transform: rotate(-9deg);
+}
+
+.decor-pen-tool {
+  bottom: 15px;
+  left: 12%;
+  --icon-size: 31px;
+  transform: rotate(13deg);
+}
+
+.decor-megaphone {
+  top: 18px;
+  right: 6%;
+  --icon-size: 36px;
+  transform: rotate(8deg);
+}
+
+.decor-message-circle {
+  bottom: 18px;
+  left: 5%;
+  --icon-size: 30px;
+  transform: rotate(-8deg);
+}
+
+.decor-aperture {
+  top: 16px;
+  right: 5%;
+  --icon-size: 36px;
+  transform: rotate(9deg);
+}
+
+.decor-bar-chart {
+  bottom: 14px;
+  left: 12%;
+  --icon-size: 30px;
+  transform: rotate(-7deg);
+}
+
+.decor-video {
+  top: 14px;
+  right: 6%;
+  --icon-size: 34px;
+  transform: rotate(-10deg);
+}
+
 .wordmark {
   font-size: 18px;
   font-weight: 500;
@@ -348,6 +446,7 @@ a {
 }
 
 .services-section {
+  z-index: 0;
   padding-block: 115px 124px;
   border-top: 1px solid rgb(245 222 162 / 12%);
   border-bottom: 1px solid rgb(245 222 162 / 12%);
@@ -388,38 +487,51 @@ a {
 
 .service-row {
   display: grid;
-  min-height: 116px;
-  grid-template-columns: 65px minmax(220px, 0.9fr) minmax(230px, 1fr) 24px;
+  min-height: 174px;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   align-items: center;
-  gap: 22px;
+  gap: clamp(28px, 5vw, 72px);
+  padding-block: 30px;
   border-bottom: 1px solid rgb(245 222 162 / 22%);
 }
 
-.service-number {
-  color: var(--color-4);
-  font-size: 11px;
+.service-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.service-icon {
+  width: 35px;
+  height: 35px;
+  flex: 0 0 35px;
+  margin-top: 4px;
+  color: var(--color-3);
+}
+
+.service-title-group h3 {
+  margin: 0;
+  font-size: clamp(30px, 3.1vw, 40px);
   font-weight: 500;
+  letter-spacing: -1px;
+  line-height: 1.12;
 }
 
-.service-row h3 {
-  margin: 0;
-  font-size: 20px;
+.service-subtitle {
+  margin: 9px 0 0;
+  color: var(--color-4);
+  font-size: 17px;
   font-weight: 400;
-  letter-spacing: -0.3px;
+  line-height: 1.45;
 }
 
-.service-row p {
-  max-width: 390px;
+.service-description {
+  max-width: 540px;
   margin: 0;
   color: var(--color-4);
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 300;
-  line-height: 1.7;
-}
-
-.service-mark {
-  color: var(--color-2);
-  font-size: 14px;
+  line-height: 1.75;
 }
 
 .work-intro {
@@ -833,6 +945,18 @@ a {
     gap: 20px 35px;
   }
 
+  .service-row {
+    gap: 30px;
+  }
+
+  .service-title-group h3 {
+    font-size: 32px;
+  }
+
+  .service-description {
+    font-size: 16px;
+  }
+
   .tools-shell {
     grid-template-columns: 1fr;
     gap: 50px;
@@ -1003,29 +1127,55 @@ a {
 
   .service-row {
     position: relative;
-    min-height: 130px;
-    grid-template-columns: 30px minmax(0, 1fr) 20px;
-    gap: 8px 12px;
-    padding-block: 19px;
+    min-height: 0;
+    grid-template-columns: 1fr;
+    gap: 17px;
+    padding-block: 25px;
   }
 
-  .service-number {
-    align-self: start;
-    padding-top: 4px;
+  .service-heading {
+    gap: 16px;
   }
 
-  .service-row h3 {
-    font-size: 17px;
+  .service-icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    margin-top: 2px;
   }
 
-  .service-row p {
-    grid-column: 2;
-    font-size: 12px;
+  .service-title-group h3 {
+    font-size: 28px;
   }
 
-  .service-mark {
-    grid-column: 3;
-    grid-row: 1 / span 2;
+  .service-subtitle {
+    margin-top: 6px;
+    font-size: 16px;
+  }
+
+  .service-description {
+    margin-left: 46px;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .background-icon {
+    --icon-size: 26px;
+  }
+
+  .decor-camera,
+  .decor-clapperboard,
+  .decor-megaphone,
+  .decor-aperture,
+  .decor-video {
+    --icon-size: 27px;
+  }
+
+  .decor-sparkles,
+  .decor-pen-tool,
+  .decor-message-circle,
+  .decor-bar-chart {
+    display: none;
   }
 
   .work-intro {
@@ -1163,6 +1313,10 @@ a {
 
   .button-text {
     min-height: 40px;
+  }
+
+  .service-title-group h3 {
+    font-size: 26px;
   }
 
   .contact-detail {

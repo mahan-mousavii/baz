@@ -1,5 +1,12 @@
 from .rollup import app
-from .homepage import AGENCY, NAVIGATION, PROJECTS, SERVICES, TOOLS
+from .homepage import (
+    AGENCY,
+    DECORATIONS,
+    NAVIGATION,
+    PROJECTS,
+    SERVICES,
+    TOOLS,
+)
 
 
 @app.route(r'/')
@@ -11,6 +18,7 @@ def get(req):
 
     return {
         'agency': AGENCY,
+        'decorations': DECORATIONS,
         'navigation': NAVIGATION,
         'projects': PROJECTS,
         'services': SERVICES,
