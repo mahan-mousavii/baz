@@ -48,10 +48,14 @@ The application needs PostgreSQL for content and login rate limits, Redis for yh
 ## CMS workflow
 
 - Use `/admin/home`, `/admin/services`, `/admin/portfolio`, `/admin/resources`, `/admin/media`, and `/admin/settings` to manage the homepage content.
+- The image picker is available on the agency logo, portfolio cover, and resource cover fields. Select from the library, upload an image from the field, or remove that section's reference. Uploading or changing a selection does not publish it; use Save draft or Publish on the relevant entry.
+- `/admin/media` is the central library for image and resource uploads. Search by filename and use the previous/next controls to browse large libraries. Supported uploads are JPG/JPEG, PNG, WEBP, PDF, DOCX, XLSX, and CSV; files are limited to 10 MB and images to 30 megapixels.
+- Removing an image from an editor clears only that content reference. Replacing an image or clearing a field does not delete the library file, so media can be reused safely by multiple entries.
+- The hero composition, service and decorative section icons, and other abstract homepage artwork are code-drawn presentation assets, not editable content images. They are intentionally excluded from the media library.
 - Save Draft stores editable changes without changing the public homepage. Publish atomically replaces the published snapshot. Archived, hidden, draft-only, and unavailable resources stay out of public output.
 - Media uploads are limited to 10 MB and validated by actual file content. Supported images are JPG, PNG, and WEBP. Resource downloads are PDF, DOCX, XLSX, and CSV. SVG and executable files are rejected.
 - The media directory is private. Public homepage images are served only when a published visible item references them. Available resource files are streamed through `/resources/<slug>/download`; uploads do not become public just because they exist.
-- Use the media picker for logos, covers, and resource files. Each image placement can override alt text or mark that placement decorative. The media library keeps a separate default alt value and decorative setting.
+- Image placements can override alt text or mark that placement decorative. The media library keeps a separate default alt value and decorative setting. Resource download files are selected from the existing file field and remain private until their resource is published as available.
 
 ## Database and migrations
 

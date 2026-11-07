@@ -18,14 +18,25 @@
   <section class="mb-10 border border-color-4/20 bg-color-1/45 p-5 sm:p-7" aria-labelledby="new-item-title">
     <h2 id="new-item-title" class="text-2xl font-light">Add ${page_title.lower() | h}</h2>
     <p class="mt-2 text-sm leading-6 text-color-2">New items stay in draft until published.</p>
-    <form action="/admin/${section}" method="post" class="mt-6 grid gap-5 md:grid-cols-2">
+    <form action="/admin/${section}" method="post" class="mt-6 space-y-5">
       <input type="hidden" name="csrf" value="${csrf | h}">
-      % for field in create_fields:
-        <%include file="admin_field.mako" args="field=field, form_id='create-' + field['name']" />
+      % for group in create_field_groups:
+        <fieldset class="border border-color-4/20 bg-color-5/50 p-4 sm:p-6">
+          <legend class="px-2 text-lg font-semibold">${group['title'] | h}</legend>
+          <p class="mb-4 text-sm leading-6 text-color-2">${group['description'] | h}</p>
+          <div class="grid gap-5 md:grid-cols-2">
+            % for field in group['fields']:
+              <%include file="admin_field.mako" args="field=field, form_id='create-' + field['name'], csrf=csrf" />
+            % endfor
+          </div>
+        </fieldset>
       % endfor
-      <div class="flex flex-wrap items-center gap-3 md:col-span-2">
-        <button class="min-h-11 bg-color-4 px-5 py-2.5 text-sm font-medium text-color-5 hover:bg-color-4/90" type="submit" name="action" value="save_draft">Save as draft</button>
-        <button class="min-h-11 border border-color-4/40 px-5 py-2.5 text-sm hover:bg-color-4/10" type="submit" name="action" value="publish">Publish</button>
+      <div class="border-t border-color-4/20 pt-4">
+        <p class="mb-3 text-sm text-color-2">Save draft keeps this item off the live homepage. Publish makes the submitted changes public.</p>
+        <div class="flex flex-wrap items-center gap-3">
+          <button class="min-h-11 border border-color-4/45 px-5 py-2.5 text-sm font-medium hover:bg-color-4/10" type="submit" name="action" value="save_draft">Save draft</button>
+          <button class="min-h-11 bg-color-4 px-5 py-2.5 text-sm font-semibold text-color-5 hover:bg-color-4/90" type="submit" name="action" value="publish">Publish</button>
+        </div>
       </div>
     </form>
   </section>
@@ -51,11 +62,19 @@
         % endif
       </div>
 
-      <form action="/admin/${section}" method="post" class="grid gap-5 md:grid-cols-2" data-track-changes>
+      <form action="/admin/${section}" method="post" class="space-y-5" data-track-changes>
         <input type="hidden" name="csrf" value="${csrf | h}">
         <input type="hidden" name="record_id" value="${entry['id'] | h}">
-        % for field in entry['fields']:
-          <%include file="admin_field.mako" args="field=field, form_id=entry['id'] + '-' + field['name']" />
+        % for group in entry['field_groups']:
+          <fieldset class="border border-color-4/20 bg-color-5/45 p-4 sm:p-6">
+            <legend class="px-2 text-lg font-semibold">${group['title'] | h}</legend>
+            <p class="mb-4 text-sm leading-6 text-color-2">${group['description'] | h}</p>
+            <div class="grid gap-5 md:grid-cols-2">
+              % for field in group['fields']:
+                <%include file="admin_field.mako" args="field=field, form_id=entry['id'] + '-' + field['name'], csrf=csrf" />
+              % endfor
+            </div>
+          </fieldset>
         % endfor
         <div class="flex flex-wrap items-end gap-x-8 gap-y-4 md:col-span-2">
           <label class="flex min-h-11 items-center gap-3 text-sm">
@@ -67,12 +86,15 @@
             <input class="min-h-10 w-24 border border-color-2/45 bg-color-5 px-3 text-color-4" type="number" name="display_order" value="${entry['display_order']}" min="-100000" max="100000">
           </label>
         </div>
-        <div class="flex flex-wrap gap-3 md:col-span-2">
-          <button class="min-h-11 bg-color-4 px-5 py-2.5 text-sm font-medium text-color-5 hover:bg-color-4/90" type="submit" name="action" value="save_draft">Save draft</button>
-          <button class="min-h-11 border border-color-4/40 px-5 py-2.5 text-sm hover:bg-color-4/10" type="submit" name="action" value="publish">Publish</button>
+        <div class="border-t border-color-4/20 pt-4">
+          <p class="mb-3 text-sm text-color-2">Save draft keeps this content off the live homepage. Publish makes these changes public.</p>
+          <div class="flex flex-wrap gap-3">
+          <button class="min-h-11 border border-color-4/45 px-5 py-2.5 text-sm font-medium hover:bg-color-4/10" type="submit" name="action" value="save_draft">Save draft</button>
+          <button class="min-h-11 bg-color-4 px-5 py-2.5 text-sm font-semibold text-color-5 hover:bg-color-4/90" type="submit" name="action" value="publish">Publish</button>
           % if entry['published_at']:
             <button class="min-h-11 border border-color-4/25 px-5 py-2.5 text-sm text-color-2 hover:border-color-4/50 hover:text-color-4" type="submit" name="action" value="unpublish" onclick="return confirm('Remove this item from the public homepage?')">Unpublish</button>
           % endif
+          </div>
         </div>
       </form>
 

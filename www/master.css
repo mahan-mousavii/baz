@@ -1,6 +1,10 @@
 @import 'tailwindcss';
 @source '../yhttp_ssr_boilerplate/templates/**/*.mako';
 
+[x-cloak] {
+  display: none !important;
+}
+
 @theme {
   --color-1: #384661;
   --color-2: #8491af;

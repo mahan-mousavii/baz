@@ -28,7 +28,7 @@
           <p class="mt-1 text-xs uppercase tracking-[0.18em] text-color-2">Admin workspace</p>
           <nav class="mt-6 flex gap-2 overflow-x-auto pb-2 lg:mt-10 lg:flex-col lg:overflow-visible" aria-label="Admin navigation">
             % for href, label in admin_navigation:
-              <a class="min-h-11 shrink-0 rounded-sm px-3 py-3 text-sm text-color-4/85 hover:bg-color-1 focus-visible:outline-2 focus-visible:outline-color-4" href="${href}">${label}</a>
+              <a class="min-h-11 shrink-0 rounded-sm px-3 py-3 text-sm ${'bg-color-4 text-color-5' if context.get('active_href') == href else 'text-color-4/85 hover:bg-color-1'} focus-visible:outline-2 focus-visible:outline-color-4" href="${href}" ${'aria-current="page"' if context.get('active_href') == href else ''}>${label}</a>
             % endfor
           </nav>
           <div class="mt-3 flex gap-4 border-t border-color-4/15 pt-5 text-sm lg:flex-col">

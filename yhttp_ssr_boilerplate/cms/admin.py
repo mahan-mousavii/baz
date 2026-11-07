@@ -3,21 +3,22 @@
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 import hmac
+import json
 import os
-import re
 import secrets
 import uuid
+from http import HTTPStatus
 from urllib.parse import quote
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from yhttp.core import guard, statuses
 from yhttp.ext.auth import AccessToken
+from yhttp.ext.mako.handler import render
 
 from ..common.models import AdminAuthState, CMSRecord, MediaAsset
 from ..manifest import __appname__
 from .content import (
     ICONS,
-    KINDS,
     publish_record,
     record_status,
     referenced_asset_ids,
@@ -104,6 +105,38 @@ FIELD_DEFINITIONS = {
         ('external_url', 'External resource URL', 'text', 500),
     ),
 }
+FIELD_GROUPS = {
+    'home': (
+        ('Hero message and calls to action', 'Shape the first message and its two homepage links.', ('eyebrow', 'headline', 'hero_description', 'primary_cta_label', 'primary_cta_href', 'secondary_cta_label', 'secondary_cta_href')),
+        ('Services and work', 'Set the section introductions shown above services and selected work.', ('services_heading', 'services_intro', 'portfolio_heading', 'portfolio_intro')),
+        ('Free resources', 'Describe the resource section on the homepage.', ('resources_heading', 'resources_intro')),
+        ('About the agency', 'Share the agency approach in a short introduction.', ('about_heading', 'about_description')),
+        ('Contact introduction', 'Set the text above the agency contact details.', ('contact_heading', 'contact_description')),
+    ),
+    'settings': (
+        ('Agency identity', 'Name, logo, and short description.', ('agency_name', 'logo_asset_id', 'description')),
+        ('Contact details', 'Real destinations shown to website visitors.', ('business_email', 'whatsapp_url')),
+        ('Social links and footer', 'Optional social profiles and closing copy.', ('instagram_url', 'linkedin_url', 'footer_text')),
+    ),
+    'service': (
+        ('Service information', 'The title, description, and existing decorative icon for this service.', ('slug', 'title', 'subtitle', 'description', 'icon')),
+    ),
+    'portfolio': (
+        ('Project details', 'Describe the work and how it should be labeled.', ('slug', 'title', 'description', 'category', 'project_type')),
+        ('Project images', 'Choose the cover image and set placement-specific accessibility text.', ('cover_asset_id', 'cover_alt', 'cover_decorative', 'additional_asset_ids')),
+        ('Homepage placement', 'Choose whether this work is featured.', ('featured',)),
+    ),
+    'resource': (
+        ('Resource details', 'Name and describe the resource for the homepage.', ('slug', 'title', 'description', 'category', 'format', 'availability')),
+        ('Cover image', 'Choose an optional image and set placement-specific accessibility text.', ('cover_asset_id', 'cover_alt', 'cover_decorative')),
+        ('Download', 'Choose a private library file or an approved external URL.', ('file_asset_id', 'external_url')),
+    ),
+}
+OPTIONAL_FIELDS = {
+    'logo_asset_id', 'business_email', 'whatsapp_url', 'instagram_url',
+    'linkedin_url', 'footer_text', 'cover_asset_id', 'cover_alt',
+    'additional_asset_ids', 'file_asset_id', 'external_url',
+}
 FORM_NAMES = {
     'csrf', 'action', 'record_id', 'display_order', 'visible', 'confirm_delete',
     'eyebrow', 'headline', 'hero_description', 'primary_cta_label',
@@ -133,6 +166,7 @@ MEDIA_FIELDS = (
     guard.String('confirm_delete', length=(1, 5), optional=True),
     guard.File('upload', optional=True),
 )
+PICKER_PAGE_SIZE = 24
 FORM_MAP = {name: name for name in FORM_NAMES}
 
 
@@ -232,6 +266,24 @@ def get(req):
     }
 
 
+@app.route(r'/admin/media/library')
+@admin_required
+@app.bodyguard(strict=True)
+@app.queryguard(fields=(
+    guard.String('search', length=(0, 200), optional=True),
+    guard.String('page', length=(1, 8), optional=True),
+), strict=True)
+def get(req):
+    try:
+        page = max(1, int(req.query.get('page', '1')))
+    except ValueError:
+        raise statuses.badrequest(message='Invalid media page.')
+    return _json_response(
+        req,
+        _image_picker_assets(req.query.get('search', ''), page),
+    )
+
+
 @app.route(r'/admin/login', verb='post')
 @app.bodyguard(fields=LOGIN_FIELDS, strict=True)
 @app.queryguard(strict=True)
@@ -328,14 +380,20 @@ def get(req):
         'sections': summaries,
         'csrf': csrf_value(req),
         'agency_name': __appname__,
+        'active_href': '/admin',
         'show_navigation': True,
     }
 
 
-def _asset_choices(session, image_only=False, file_only=False):
-    assets = session.scalars(
-        select(MediaAsset).order_by(MediaAsset.created_at.desc())
-    ).all()
+def _asset_choices(session, image_only=False, file_only=False, limit=None):
+    query = select(MediaAsset).order_by(MediaAsset.created_at.desc())
+    if image_only:
+        query = query.where(MediaAsset.mime_type.startswith('image/'))
+    if file_only:
+        query = query.where(~MediaAsset.mime_type.startswith('image/'))
+    if limit:
+        query = query.limit(limit)
+    assets = session.scalars(query).all()
     result = []
     for asset in assets:
         is_image = asset.mime_type.startswith('image/')
@@ -347,6 +405,11 @@ def _asset_choices(session, image_only=False, file_only=False):
             'id': asset.id,
             'label': f'{asset.original_filename} · {asset.file_size // 1024} KB',
             'mime_type': asset.mime_type,
+            'filename': asset.original_filename,
+            'size': asset.file_size,
+            'width': asset.width,
+            'height': asset.height,
+            'preview_url': f'/admin/media/{asset.id}/preview',
         })
     return result
 
@@ -375,8 +438,8 @@ def _fields_for(kind, data, asset_options):
                 {'value': 'available', 'label': 'Available'},
             ]
         elif type_ == 'image_asset':
-            type_ = 'select'
-            options = [{'value': '', 'label': 'No image'}] + asset_options['images']
+            type_ = 'image_asset'
+            options = asset_options['images']
         elif type_ == 'file_asset':
             type_ = 'select'
             options = [{'value': '', 'label': 'No file'}] + asset_options['files']
@@ -384,18 +447,55 @@ def _fields_for(kind, data, asset_options):
             type_ = 'multi_image_asset'
             selected = set(value or [])
             options = [dict(option, selected=option['value'] in selected) for option in asset_options['images']]
+        selected_asset = next(
+            (option for option in options if option.get('value') == value), None,
+        ) if type_ == 'image_asset' else None
+        if selected_asset:
+            selected_asset = {
+                **selected_asset,
+                'filename': selected_asset.get('filename', selected_asset.get('label', 'Selected image')),
+                'preview_url': selected_asset.get(
+                    'preview_url', f"/admin/media/{selected_asset['value']}/preview",
+                ),
+            }
         fields.append({
             'name': name,
             'label': label,
             'type': type_,
             'value': value,
             'maxlength': maximum,
+            'required': name not in OPTIONAL_FIELDS and type_ not in {'checkbox', 'multi_image_asset'},
             'options': options,
+            'selected_asset': selected_asset,
         })
     return fields
 
 
-def _editor_context(section, req, *, error=None, notice=None):
+def _field_groups(kind, fields):
+    by_name = {field['name']: field for field in fields}
+    groups = []
+    for title, description, names in FIELD_GROUPS[kind]:
+        group_fields = [by_name[name] for name in names if name in by_name]
+        if group_fields:
+            groups.append({
+                'title': title,
+                'description': description,
+                'fields': group_fields,
+            })
+    return groups
+
+
+def _mark_field_error(fields, message):
+    if not message:
+        return
+    lower = message.casefold()
+    for field in fields:
+        label = field['label'].casefold()
+        if lower.startswith(label) or field['name'].replace('_', ' ') in lower:
+            field['error'] = message
+
+
+def _editor_context(section, req, *, error=None, notice=None, submitted=None):
     kind = SECTION_TO_KIND[section]
     with app.db.session() as session:
         records = session.scalars(
@@ -404,11 +504,64 @@ def _editor_context(section, req, *, error=None, notice=None):
             .order_by(CMSRecord.display_order, CMSRecord.created_at)
         ).all()
         options = {
-            'images': [dict(value=item['id'], label=item['label']) for item in _asset_choices(session, image_only=True)],
-            'files': [dict(value=item['id'], label=item['label']) for item in _asset_choices(session, file_only=True)],
+            'images': [dict(value=item['id'], **item) for item in _asset_choices(session, image_only=True, limit=PICKER_PAGE_SIZE)],
+            'files': [dict(value=item['id'], label=item['label']) for item in _asset_choices(session, file_only=True, limit=PICKER_PAGE_SIZE)],
         }
         entries = []
         for record in records:
+            data = dict(record.draft_data)
+            if submitted and submitted.get('record_id') == record.id:
+                for name, _, field_type, _ in FIELD_DEFINITIONS[kind]:
+                    if field_type == 'checkbox':
+                        data[name] = str(submitted.get(name, '')).lower() in {'1', 'true', 'yes', 'on'}
+                    elif field_type == 'multi_image_asset':
+                        data[name] = submitted.getall(name)
+                    elif name in submitted:
+                        data[name] = submitted.get(name, '')
+            entry_options = dict(options)
+            if submitted and submitted.get('record_id') == record.id:
+                for name in ('logo_asset_id', 'cover_asset_id'):
+                    posted_id = submitted.get(name)
+                    if posted_id and not any(item['value'] == posted_id for item in entry_options['images']):
+                        asset = session.get(MediaAsset, posted_id)
+                        if asset and asset.mime_type.startswith('image/'):
+                            entry_options['images'] = [*entry_options['images'], {
+                                'value': asset.id, 'id': asset.id,
+                                'filename': asset.original_filename,
+                                'label': f'{asset.original_filename} · {asset.file_size // 1024} KB',
+                                'mime_type': asset.mime_type, 'size': asset.file_size,
+                                'width': asset.width, 'height': asset.height,
+                                'preview_url': f'/admin/media/{asset.id}/preview',
+                            }]
+            for asset_id in (
+                data.get('logo_asset_id'), data.get('cover_asset_id'),
+                *(data.get('additional_asset_ids') or []),
+            ):
+                if asset_id and not any(item['value'] == asset_id for item in entry_options['images']):
+                    asset = session.get(MediaAsset, asset_id)
+                    if asset and asset.mime_type.startswith('image/'):
+                        entry_options['images'] = [*entry_options['images'], {
+                            'value': asset.id,
+                            'id': asset.id,
+                            'filename': asset.original_filename,
+                            'label': f'{asset.original_filename} · {asset.file_size // 1024} KB',
+                            'mime_type': asset.mime_type,
+                            'size': asset.file_size,
+                            'width': asset.width,
+                            'height': asset.height,
+                            'preview_url': f'/admin/media/{asset.id}/preview',
+                        }]
+            file_id = data.get('file_asset_id')
+            if file_id and not any(item['value'] == file_id for item in entry_options['files']):
+                asset = session.get(MediaAsset, file_id)
+                if asset and not asset.mime_type.startswith('image/'):
+                    entry_options['files'] = [*entry_options['files'], {
+                        'value': asset.id,
+                        'label': f'{asset.original_filename} · {asset.file_size // 1024} KB',
+                    }]
+            entry_fields = _fields_for(kind, data, entry_options)
+            if submitted and submitted.get('record_id') == record.id:
+                _mark_field_error(entry_fields, error)
             entries.append({
                 'id': record.id,
                 'slug': record.slug,
@@ -419,10 +572,34 @@ def _editor_context(section, req, *, error=None, notice=None):
                 'draft_visible': record.draft_visible,
                 'updated_at': record.updated_at,
                 'published_at': record.published_at,
-                'fields': _fields_for(kind, record.draft_data, options),
+                'fields': entry_fields,
             })
+            entries[-1]['field_groups'] = _field_groups(kind, entries[-1]['fields'])
         is_collection = kind in {'service', 'portfolio', 'resource'}
-        create_fields = _fields_for(kind, {}, options) if is_collection else []
+        create_data = {}
+        if submitted and not submitted.get('record_id'):
+            for name, _, field_type, _ in FIELD_DEFINITIONS[kind]:
+                if field_type == 'checkbox':
+                    create_data[name] = str(submitted.get(name, '')).lower() in {'1', 'true', 'yes', 'on'}
+                elif field_type == 'multi_image_asset':
+                    create_data[name] = submitted.getall(name)
+                elif name in submitted:
+                    create_data[name] = submitted.get(name, '')
+            for asset_id in (create_data.get('cover_asset_id'),):
+                if asset_id and not any(item['value'] == asset_id for item in options['images']):
+                    asset = session.get(MediaAsset, asset_id)
+                    if asset and asset.mime_type.startswith('image/'):
+                        options['images'].append({
+                            'value': asset.id, 'id': asset.id,
+                            'filename': asset.original_filename,
+                            'label': f'{asset.original_filename} · {asset.file_size // 1024} KB',
+                            'mime_type': asset.mime_type, 'size': asset.file_size,
+                            'width': asset.width, 'height': asset.height,
+                            'preview_url': f'/admin/media/{asset.id}/preview',
+                        })
+        create_fields = _fields_for(kind, create_data, options) if is_collection else []
+        if submitted and not submitted.get('record_id'):
+            _mark_field_error(create_fields, error)
     status_key = req.query.get('status', '')
     notice = notice or {
         'saved': 'Draft saved. The live homepage is unchanged.',
@@ -443,12 +620,14 @@ def _editor_context(section, req, *, error=None, notice=None):
         'description': description,
         'entries': entries,
         'create_fields': create_fields,
+        'create_field_groups': _field_groups(kind, create_fields),
         'is_collection': is_collection,
         'csrf': csrf_value(req),
         'error': error,
         'notice': notice,
         'media_url': lambda asset_id: f'/media/{asset_id}',
         'agency_name': __appname__,
+        'active_href': f'/admin/{section}',
         'show_navigation': True,
     }
 
@@ -462,6 +641,43 @@ def get(req, section):
     if section not in SECTION_TO_KIND:
         raise statuses.notfound()
     return _editor_context(section, req)
+
+
+def _image_picker_assets(search='', page=1):
+    """Return a bounded image library projection for SSR and picker use."""
+    search = search.strip().casefold()
+    offset = (page - 1) * PICKER_PAGE_SIZE
+    with app.db.session() as session:
+        query = select(MediaAsset).where(MediaAsset.mime_type.startswith('image/'))
+        if search:
+            query = query.where(func.lower(MediaAsset.original_filename).contains(search))
+        total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
+        assets = session.scalars(
+            query
+            .order_by(MediaAsset.created_at.desc())
+            .offset(offset)
+            .limit(PICKER_PAGE_SIZE)
+        ).all()
+        rows = [{
+            'id': asset.id,
+            'filename': asset.original_filename,
+            'mime_type': asset.mime_type,
+            'size': asset.file_size,
+            'width': asset.width,
+            'height': asset.height,
+            'preview_url': f'/admin/media/{asset.id}/preview',
+        } for asset in assets]
+        return {'items': rows, 'page': page, 'has_more': offset + len(rows) < total}
+
+
+def _json_response(req, payload, status=200):
+    data = json.dumps(payload).encode('utf-8')
+    req.response.status = f'{status} {HTTPStatus(status).phrase}'
+    req.response.contenttype = 'application/json; charset=utf-8'
+    req.response.length = len(data)
+    req.response.headers['cache-control'] = 'no-store'
+    req.response.headers['x-content-type-options'] = 'nosniff'
+    yield data
 
 
 def _move_record(session, record, direction):
@@ -585,19 +801,57 @@ def update(req, section):
         error = str(exception)
 
     if error:
-        return _editor_context(section, req, error=error)
+        return _editor_context(
+            section, req, error=error, submitted=req.form,
+        )
     redirect(f'/admin/{section}?status={notice}')
 
 
 @app.route(r'/admin/media')
 @admin_required
 @app.bodyguard(strict=True)
-@app.queryguard(fields=(guard.String('status', optional=True),), strict=True)
+@app.queryguard(fields=(
+    guard.String('status', optional=True),
+    guard.String('search', length=(0, 200), optional=True),
+    guard.String('page', length=(1, 8), optional=True),
+), strict=True)
 @app.template('admin_media.mako')
 def get(req):
+    try:
+        page = max(1, int(req.query.get('page', '1')))
+    except ValueError:
+        raise statuses.badrequest(message='Invalid media page.')
+    status_key = req.query.get('status', '')
+    notice = {
+        'uploaded': 'File uploaded to the media library.',
+        'updated': 'Media details updated.',
+        'deleted': 'Unused media asset deleted.',
+    }.get(status_key)
+    return _media_context(
+        req,
+        notice=notice,
+        search=req.query.get('search', ''),
+        page=page,
+    )
+
+
+def _media_context(req, *, error=None, notice=None, search=None, page=None):
+    search = req.query.get('search', '') if search is None else search
+    if page is None:
+        try:
+            page = max(1, int(req.query.get('page', '1')))
+        except ValueError:
+            page = 1
+    offset = (page - 1) * PICKER_PAGE_SIZE
     with app.db.session() as session:
+        query = select(MediaAsset)
+        if search:
+            query = query.where(func.lower(MediaAsset.original_filename).contains(search.lower()))
+        total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
         assets = session.scalars(
-            select(MediaAsset).order_by(MediaAsset.created_at.desc())
+            query.order_by(MediaAsset.created_at.desc())
+            .offset(offset)
+            .limit(PICKER_PAGE_SIZE)
         ).all()
         used = referenced_asset_ids(session)
         rows = [{
@@ -612,40 +866,34 @@ def get(req):
             'created_at': asset.created_at,
             'used': asset.id in used,
         } for asset in assets]
-    status_key = req.query.get('status', '')
-    notice = {
-        'uploaded': 'File uploaded to the media library.',
-        'updated': 'Media details updated.',
-        'deleted': 'Unused media asset deleted.',
-    }.get(status_key)
     return {
         'assets': rows,
         'csrf': csrf_value(req),
         'agency_name': __appname__,
-        'error': None,
+        'error': error,
         'notice': notice,
         'max_upload_mb': 10,
+        'search': search,
+        'page': page,
+        'has_previous': page > 1,
+        'has_next': offset + len(rows) < total,
+        'result_count': total,
+        'active_href': '/admin/media',
         'show_navigation': True,
     }
 
 
-@app.route(r'/admin/media', verb='post')
-@admin_required
-@app.bodyguard(fields=MEDIA_FIELDS, strict=True)
-@app.queryguard(strict=True)
-@app.template('admin_media.mako')
-def create(req):
-    verify_csrf(req)
-    action = req.form.get('action', '')
-    if action != 'upload':
-        raise statuses.badrequest(message='Choose a valid media action.')
+def _store_uploaded_asset(req, *, image_only=False):
+    """Validate and persist uploads once for both library and editor flows."""
     field = req.files.get('upload')
     if not field or not field.filename:
-        return _media_context(req, error='Choose a JPG, PNG, WEBP, PDF, DOCX, XLSX, or CSV file.')
+        return None, 'Choose an image to upload.'
     try:
         inspected = inspect_upload(field)
     except InvalidUpload as error:
-        return _media_context(req, error=str(error))
+        return None, str(error)
+    if image_only and not inspected['mime_type'].startswith('image/'):
+        return None, 'Choose a JPG, PNG, or WEBP image.'
 
     asset_id = str(uuid.uuid4())
     try:
@@ -671,40 +919,36 @@ def create(req):
             app.cms_storage.delete(asset_id)
         except Exception:
             pass
-        return _media_context(
-            req,
-            error='The upload could not be stored. Check the media storage configuration and try again.',
-        )
-    redirect('/admin/media?status=uploaded')
-
-
-def _media_context(req, *, error=None, notice=None):
-    with app.db.session() as session:
-        assets = session.scalars(
-            select(MediaAsset).order_by(MediaAsset.created_at.desc())
-        ).all()
-        used = referenced_asset_ids(session)
-        rows = [{
-            'id': asset.id,
-            'filename': asset.original_filename,
-            'mime_type': asset.mime_type,
-            'size': asset.file_size,
-            'width': asset.width,
-            'height': asset.height,
-            'alt_text': asset.alt_text,
-            'decorative': asset.decorative,
-            'created_at': asset.created_at,
-            'used': asset.id in used,
-        } for asset in assets]
+        return None, 'The upload could not be stored. Check the media storage configuration and try again.'
     return {
-        'assets': rows,
-        'csrf': csrf_value(req),
-        'agency_name': __appname__,
-        'error': error,
-        'notice': notice,
-        'max_upload_mb': 10,
-        'show_navigation': True,
-    }
+        'id': asset_id,
+        'filename': inspected['filename'],
+        'mime_type': inspected['mime_type'],
+        'size': len(inspected['data']),
+        'width': inspected['width'],
+        'height': inspected['height'],
+        'preview_url': f'/admin/media/{asset_id}/preview',
+    }, None
+
+
+@app.route(r'/admin/media', verb='post')
+@admin_required
+@app.bodyguard(fields=MEDIA_FIELDS, strict=True)
+@app.queryguard(fields=(guard.String('picker', optional=True),), strict=True)
+def create(req):
+    verify_csrf(req)
+    action = req.form.get('action', '')
+    if action != 'upload':
+        raise statuses.badrequest(message='Choose a valid media action.')
+    is_picker = req.query.get('picker') == '1'
+    item, error = _store_uploaded_asset(req, image_only=is_picker)
+    if error:
+        if is_picker:
+            return _json_response(req, {'error': error}, 400)
+        return render(req, 'admin_media.mako', _media_context(req, error=error))
+    if is_picker:
+        return _json_response(req, {'item': item}, 201)
+    redirect('/admin/media?status=uploaded')
 
 
 @app.route(r'/admin/media/([0-9a-f-]{36})', verb='post')

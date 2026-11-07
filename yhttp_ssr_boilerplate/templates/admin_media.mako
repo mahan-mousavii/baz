@@ -3,8 +3,8 @@
 
 <header class="mb-8 border-b border-color-4/20 pb-7">
   <p class="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-color-2">Private uploads</p>
-  <h1 class="text-4xl font-light tracking-tight sm:text-5xl">Media library</h1>
-  <p class="mt-3 max-w-2xl text-base leading-7 text-color-2">Upload images and approved resource files. Unpublished files stay private.</p>
+  <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">Media library</h1>
+  <p class="mt-3 max-w-2xl text-base leading-7 text-color-2">Upload once, then reuse images across homepage sections. Unpublished files stay private.</p>
 </header>
 
 % if error:
@@ -15,8 +15,8 @@
 % endif
 
 <section class="mb-10 border border-color-4/20 bg-color-1/45 p-5 sm:p-7" aria-labelledby="upload-heading">
-  <h2 id="upload-heading" class="text-2xl font-light">Upload an asset</h2>
-  <p class="mt-2 text-sm leading-6 text-color-2">Supported: JPG, PNG, WEBP, PDF, DOCX, XLSX, and CSV. Maximum ${max_upload_mb} MB per file.</p>
+  <h2 id="upload-heading" class="text-2xl font-semibold">Upload image or resource</h2>
+  <p class="mt-2 text-sm leading-6 text-color-2">Supported: JPG/JPEG, PNG, WEBP, PDF, DOCX, XLSX, and CSV. Maximum ${max_upload_mb} MB per file; images may be up to 30 megapixels.</p>
   <form action="/admin/media" method="post" enctype="multipart/form-data" class="mt-6 grid gap-5 md:grid-cols-2">
     <input type="hidden" name="csrf" value="${csrf | h}">
     <input type="hidden" name="action" value="upload">
@@ -32,7 +32,16 @@
         Image is decorative by default
       </label>
     </div>
-    <button class="min-h-11 w-fit bg-color-4 px-5 py-2.5 text-sm font-medium text-color-5 hover:bg-color-4/90 md:col-span-2" type="submit">Upload asset</button>
+    <button class="min-h-11 w-fit bg-color-4 px-5 py-2.5 text-sm font-medium text-color-5 hover:bg-color-4/90 md:col-span-2" type="submit">Upload image or file</button>
+  </form>
+</section>
+
+<section class="mb-6 flex flex-col gap-4 border-b border-color-4/15 pb-5 sm:flex-row sm:items-end sm:justify-between" aria-labelledby="library-heading">
+  <div><h2 id="library-heading" class="text-2xl font-semibold">Your library</h2><p class="mt-1 text-sm text-color-2">${result_count} result${'' if result_count == 1 else 's'} · 24 items per page</p></div>
+  <form action="/admin/media" method="get" class="flex w-full gap-2 sm:max-w-md">
+    <label class="sr-only" for="media-search">Search filenames</label>
+    <input class="min-h-11 min-w-0 flex-1 border border-color-2/45 bg-white px-3 text-sm outline-none focus:border-color-4" id="media-search" name="search" type="search" value="${search | h}" placeholder="Search filenames">
+    <button class="min-h-11 bg-color-4 px-4 text-sm font-medium text-color-5" type="submit">Search</button>
   </form>
 </section>
 
@@ -47,7 +56,7 @@
         % else:
           <div class="mb-4 flex aspect-[16/10] items-center justify-center bg-color-5 text-4xl text-color-2" aria-hidden="true">⇩</div>
         % endif
-        <h2 class="break-all text-base font-medium">${asset['filename'] | h}</h2>
+        <h3 class="break-all text-base font-semibold">${asset['filename'] | h}</h3>
         <p class="mt-2 text-xs leading-5 text-color-2">${asset['mime_type'] | h} · ${asset['size'] // 1024} KB
           % if asset['width'] and asset['height']:
             · ${asset['width']} × ${asset['height']} px
@@ -84,5 +93,21 @@
     % endfor
   </section>
 % else:
-  <p class="border border-color-4/20 bg-color-1/45 px-5 py-6 text-sm leading-6 text-color-2">No media has been uploaded yet.</p>
+  <p class="border border-color-4/20 bg-color-1/45 px-5 py-6 text-sm leading-6 text-color-2" role="status">${'No files match this filename search.' if search else 'No media has been uploaded yet. Use Upload image or resource above to add your first file.'}</p>
+% endif
+
+% if has_previous or has_next:
+  <nav class="mt-6 flex items-center justify-between" aria-label="Media library pages">
+    % if has_previous:
+      <a class="min-h-11 border border-color-4/30 px-4 py-3 text-sm hover:bg-color-1" href="/admin/media?page=${page - 1}&amp;search=${search | u}">Previous</a>
+    % else:
+      <span></span>
+    % endif
+    <span class="text-sm text-color-2">Page ${page}</span>
+    % if has_next:
+      <a class="min-h-11 border border-color-4/30 px-4 py-3 text-sm hover:bg-color-1" href="/admin/media?page=${page + 1}&amp;search=${search | u}">Next</a>
+    % else:
+      <span></span>
+    % endif
+  </nav>
 % endif

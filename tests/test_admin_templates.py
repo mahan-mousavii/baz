@@ -8,6 +8,7 @@ from mako.lookup import TemplateLookup
 from yhttp_ssr_boilerplate.cms.admin import (
     FIELD_DEFINITIONS,
     SECTION_TO_KIND,
+    _field_groups,
     _fields_for,
 )
 
@@ -67,7 +68,13 @@ def _render_editor(section):
         'updated_at': datetime(2026, 11, 7, tzinfo=timezone.utc),
         'published_at': datetime(2026, 11, 7, tzinfo=timezone.utc),
         'fields': fields,
+        'field_groups': _field_groups(kind, fields),
     }
+    create_fields = (
+        _fields_for(kind, {}, ASSET_OPTIONS)
+        if kind in {'service', 'portfolio', 'resource'}
+        else []
+    )
     return LOOKUP.get_template('admin_editor.mako').render(
         settings=SimpleNamespace(env='production'),
         asseturl=lambda path: f'/assets/{path}',
@@ -81,11 +88,8 @@ def _render_editor(section):
         is_collection=kind in {'service', 'portfolio', 'resource'},
         section=section,
         entries=[entry],
-        create_fields=(
-            _fields_for(kind, {}, ASSET_OPTIONS)
-            if kind in {'service', 'portfolio', 'resource'}
-            else []
-        ),
+        create_fields=create_fields,
+        create_field_groups=_field_groups(kind, create_fields),
     )
 
 
@@ -99,6 +103,7 @@ def test_admin_editor_sections_render_fields_through_mako_include(section):
     assert 'name="csrf" value="csrf-token"' in rendered
     assert 'name="action" value="save_draft"' in rendered
     assert 'name="action" value="publish"' in rendered
+    assert '<fieldset' in rendered
     assert 'id="' in rendered
 
 
@@ -109,6 +114,19 @@ def test_admin_editor_include_preserves_field_escaping_and_controls():
     assert '<script>Keep this escaped</script>' not in rendered
     assert 'name="headline"' in rendered
     assert 'name="hero_description"' in rendered
+
+
+def test_image_fields_render_library_upload_remove_and_accessible_picker_controls():
+    rendered = _render_editor('portfolio')
+
+    assert 'name="cover_asset_id" value="image-asset-id"' in rendered
+    assert 'data-current-filename="cover.jpg · 12 KB"' in rendered
+    assert 'Choose from Media Library' in rendered
+    assert 'Upload new image' in rendered
+    assert 'Remove from this section' in rendered
+    assert 'aria-labelledby="portfolio-record-id-cover_asset_id-picker-title"' in rendered
+    assert 'name="csrf" value="csrf-token"' in rendered
+    assert 'type="text" id="portfolio-record-id-cover_asset_id"' not in rendered
 
 
 def test_other_admin_templates_render_with_representative_contexts():
@@ -141,6 +159,11 @@ def test_other_admin_templates_render_with_representative_contexts():
             'error': None,
             'notice': None,
             'max_upload_mb': 10,
+            'search': '',
+            'page': 1,
+            'has_previous': False,
+            'has_next': False,
+            'result_count': 1,
             'assets': [{
                 'id': 'image-asset-id',
                 'filename': 'cover.jpg',
@@ -160,3 +183,6 @@ def test_other_admin_templates_render_with_representative_contexts():
         assert '<!doctype html>' in rendered
         if name != 'admin_login.mako':
             assert 'name="csrf" value="csrf-token"' in rendered
+        if name == 'admin_media.mako':
+            assert 'Upload image or file' in rendered
+            assert '30 megapixels' in rendered

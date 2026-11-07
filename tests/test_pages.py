@@ -28,10 +28,10 @@ def test_home_page(httpreq):
         assert 'href="#services-work"' in response.text
         assert 'href="#contact"' in response.text
         for service in (
-            'Direction', 'Marketing & Brand Strategy',
-            'Creation', 'Content & Visual Production',
+            'Direction', 'Marketing &amp; Brand Strategy',
+            'Creation', 'Content &amp; Visual Production',
             'Presence', 'Social Media Management',
-            'Growth', 'Digital Marketing & Campaigns',
+            'Growth', 'Digital Marketing &amp; Campaigns',
         ):
             assert service in response.text
         assert response.text.count('class="service-row"') == 4
