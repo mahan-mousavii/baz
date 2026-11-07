@@ -172,6 +172,14 @@ a {
   text-decoration: none;
 }
 
+.wordmark-image img {
+  display: block;
+  width: auto;
+  max-width: 180px;
+  max-height: 46px;
+  object-fit: contain;
+}
+
 .wordmark-period {
   color: var(--color-2);
 }
@@ -570,6 +578,13 @@ a {
   border: 1px solid rgb(245 222 162 / 13%);
 }
 
+.project-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .project-ritual {
   background: var(--color-3);
 }
@@ -744,6 +759,14 @@ a {
   font-size: 18px;
 }
 
+.tool-cover {
+  display: block;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  object-fit: cover;
+}
+
 .tool-copy h3 {
   margin: 0 0 7px;
   color: var(--color-4);
@@ -765,6 +788,11 @@ a {
   font-size: 9px;
   font-weight: 400;
   white-space: nowrap;
+}
+
+.resource-link {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .about-section {
@@ -876,6 +904,23 @@ a {
   color: var(--color-4);
   font-size: 11px;
   font-weight: 300;
+}
+
+.footer-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.footer-socials a {
+  color: var(--color-2);
+  font-size: 10px;
+  text-decoration: none;
+}
+
+.footer-socials a:hover {
+  color: var(--color-4);
 }
 
 .footer-navigation {

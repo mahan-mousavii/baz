@@ -16,7 +16,10 @@ setup(
     description='A server-side-rendered YHTTP starter application.',
     packages=find_packages(where='.', exclude=['tests']),
     package_data={
-        'yhttp_ssr_boilerplate': ['templates/**/*.mako'],
+        'yhttp_ssr_boilerplate': [
+            'templates/**/*.mako',
+            'dbmigration/*.py',
+        ],
     },
     install_requires=[
         'yhttp >= 9.4.2, < 10',
@@ -25,6 +28,8 @@ setup(
         'yhttp-dbmanager >= 9.1, < 10',
         'yhttp-media >= 4.1, < 5',
         'yhttp-sqlalchemy >= 6.1, < 7',
+        'boto3 >= 1.34, < 2',
+        'Pillow >= 10, < 13',
     ],
     entry_points={
         'console_scripts': [

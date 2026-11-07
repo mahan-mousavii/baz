@@ -5,6 +5,9 @@ __pycache__/
 .coverage.*
 .pytest_cache/
 .var/
+.env
+.env.*
+!.env.example
 activate.sh
 build/
 dist/

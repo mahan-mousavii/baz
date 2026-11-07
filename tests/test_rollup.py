@@ -10,7 +10,7 @@ ready = next(
 )
 
 
-def test_ready_registers_production_directories():
+def test_ready_registers_public_directories_but_keeps_cms_media_private():
     registered = []
     app = SimpleNamespace(
         settings=SimpleNamespace(
@@ -20,11 +20,7 @@ def test_ready_registers_production_directories():
                 url='/assets',
                 directory='/srv/assets',
             ),
-            media=SimpleNamespace(
-                serve=True,
-                url='/media',
-                directory='/srv/media',
-            ),
+            media=SimpleNamespace(serve=True, url='/media', directory='/srv/media'),
             public=SimpleNamespace(
                 serve=True,
                 url='/',
@@ -40,9 +36,9 @@ def test_ready_registers_production_directories():
 
     assert [item[0][0] for item in registered] == [
         '/assets',
-        '/media',
         '/',
     ]
+    assert '/media' not in [item[0][0] for item in registered]
 
 
 def test_ready_skips_disabled_directories():

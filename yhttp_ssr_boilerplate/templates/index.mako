@@ -13,8 +13,8 @@
 </%def>
 
 <%block name="head">
-  <meta property="og:title" content="${agency['name']} — Creative Marketing Agency · Oman">
-  <meta property="og:description" content="${agency['positioning']} Based in Oman.">
+  <meta property="og:title" content="${agency['name'] | h} — Creative Marketing Agency · Oman">
+  <meta property="og:description" content="${agency['positioning'] | h} Based in Oman.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="${settings.publicurl.rstrip('/')}/">
 </%block>
@@ -36,12 +36,12 @@
 <section class="hero decorated-section" aria-labelledby="home-title">
   ${self.decoration_layer('hero')}
   <div class="hero-copy">
-    <p class="eyebrow"><span class="eyebrow-rule"></span> Creative Marketing Agency <span class="eyebrow-dot">·</span> Oman</p>
-    <h1 id="home-title">Clear strategy.<br><span>Distinctive content.</span></h1>
-    <p class="hero-description">We help businesses in Oman turn ideas into thoughtful marketing, compelling content, and distinctive visual experiences.</p>
+    <p class="eyebrow"><span class="eyebrow-rule"></span> ${home['eyebrow'] | h}</p>
+    <h1 id="home-title">${headline_lines[0] | h}<br><span>${headline_lines[1] | h}</span></h1>
+    <p class="hero-description">${home['hero_description'] | h}</p>
     <div class="hero-actions">
-      <a class="button button-primary" href="#services-work">Explore Our Services <span aria-hidden="true">↘</span></a>
-      <a class="button button-text" href="#free-tools">Explore Free Tools <span aria-hidden="true">↗</span></a>
+      <a class="button button-primary" href="${home['primary_cta_href'] | h}">${home['primary_cta_label'] | h} <span aria-hidden="true">↘</span></a>
+      <a class="button button-text" href="${home['secondary_cta_href'] | h}">${home['secondary_cta_label'] | h} <span aria-hidden="true">↗</span></a>
     </div>
     <p class="hero-location"><span aria-hidden="true">✳</span> Independent thinking, rooted in Oman.</p>
   </div>
@@ -58,8 +58,8 @@
   ${self.decoration_layer('services')}
   <div class="section-intro">
     <p class="eyebrow">THINKING, THEN MAKING</p>
-    <h2 id="services-title">From clear direction to creative execution.</h2>
-    <p class="section-summary">Strategy, content, social media, and campaigns — working together for your brand.</p>
+    <h2 id="services-title">${home['services_heading'] | h}</h2>
+    <p class="section-summary">${home['services_intro'] | h}</p>
   </div>
   <div class="service-list">
     % for service in services:
@@ -67,27 +67,39 @@
         <div class="service-heading">
           ${self.icon(service['icon'], 'service-icon')}
           <div class="service-title-group">
-            <h3>${service['title']}</h3>
-            <p class="service-subtitle">${service['subtitle']}</p>
+            <h3>${service['title'] | h}</h3>
+            <p class="service-subtitle">${service['subtitle'] | h}</p>
           </div>
         </div>
-        <p class="service-description">${service['description']}</p>
+        <p class="service-description">${service['description'] | h}</p>
       </article>
     % endfor
   </div>
-  <div class="work-intro"><p class="eyebrow">A FEEL FOR THE POSSIBLE</p><p>Selected explorations</p></div>
+  <div class="work-intro"><p class="eyebrow">A FEEL FOR THE POSSIBLE</p><p>${home['portfolio_heading'] | h}</p><p class="section-summary">${home['portfolio_intro'] | h}</p></div>
   <div class="project-grid">
-    % for project in projects:
+    % for project in projects[:2]:
       <article class="project-preview">
-        <div class="project-art project-${project['style']}" aria-hidden="true">
-          % if project['style'] == 'ritual':
-            <div class="ritual-disc"></div><div class="ritual-vessel"></div><span class="project-art-note">MORNING<br>RITUALS</span>
+        % if project.get('cover_asset_id'):
+          <div class="project-art project-photo">
+            <img src="/media/${project['cover_asset_id'] | h}" alt="${project.get('cover_alt', '') | h}">
+          </div>
+        % else:
+          <div class="project-art project-${project['style']}" aria-hidden="true">
+            % if project['style'] == 'ritual':
+              <div class="ritual-disc"></div><div class="ritual-vessel"></div><span class="project-art-note">MORNING<br>RITUALS</span>
+            % else:
+              <div class="road-sun"></div><div class="road-shape road-shape-back"></div><div class="road-shape road-shape-front"></div><span class="road-type">GO<br>FURTHER</span>
+            % endif
+            <span class="project-number">${project['number']}</span>
+          </div>
+        % endif
+        <div class="project-caption"><div><span class="project-type">${project['category'] | h}</span><h3>${project['title'] | h}</h3></div>
+          % if project.get('project_type') == 'concept':
+            <span class="concept-tag">Concept Preview</span>
           % else:
-            <div class="road-sun"></div><div class="road-shape road-shape-back"></div><div class="road-shape road-shape-front"></div><span class="road-type">GO<br>FURTHER</span>
+            <span class="project-type">CLIENT WORK</span>
           % endif
-          <span class="project-number">${project['number']}</span>
         </div>
-        <div class="project-caption"><div><span class="project-type">${project['type']}</span><h3>${project['title']}</h3></div><span class="concept-tag">CONCEPT</span></div>
       </article>
     % endfor
   </div>
@@ -96,10 +108,22 @@
 <section class="tools-section decorated-section" id="free-tools" aria-labelledby="tools-title">
   ${self.decoration_layer('tools')}
   <div class="tools-shell">
-    <div class="tools-heading"><p class="eyebrow">GOOD THINKING, SHARED</p><h2 id="tools-title">Practical tools.<br><span>A clearer next step.</span></h2><p>Simple resources to help you plan your marketing, organize your content, and move forward independently.</p></div>
+    <div class="tools-heading"><p class="eyebrow">GOOD THINKING, SHARED</p><h2 id="tools-title">${resources_heading_lines[0] | h}<br><span>${resources_heading_lines[1] | h}</span></h2><p>${home['resources_intro'] | h}</p></div>
     <div class="tool-list">
-      % for tool in tools:
-        <article class="tool-row"><span class="tool-icon" aria-hidden="true">✳</span><div class="tool-copy"><h3>${tool['title']}</h3><p>${tool['description']}</p></div><span class="coming-soon">Coming soon</span></article>
+      % for tool in tools[:3]:
+        <article class="tool-row">
+          % if tool.get('cover_asset_id'):
+            <img class="tool-cover" src="/media/${tool['cover_asset_id'] | h}" alt="${tool.get('cover_alt', '') | h}">
+          % else:
+            <span class="tool-icon" aria-hidden="true">✳</span>
+          % endif
+          <div class="tool-copy"><h3>${tool['title'] | h}</h3><p>${tool['description'] | h}</p></div>
+          % if tool.get('download_href'):
+            <a class="coming-soon resource-link" href="${tool['download_href'] | h}">Open resource <span aria-hidden="true">↗</span></a>
+          % else:
+            <span class="coming-soon">Coming soon</span>
+          % endif
+        </article>
       % endfor
     </div>
   </div>
@@ -108,23 +132,23 @@
 <section class="about-section section-shell decorated-section" aria-labelledby="about-title">
   ${self.decoration_layer('about')}
   <p class="eyebrow">A LITTLE ABOUT HOW WE THINK</p>
-  <div class="about-content"><h2 id="about-title">A thoughtful approach<br>to <span>brand growth.</span></h2><p>Based in Oman, we bring marketing thinking and creative production together to help businesses communicate clearly and show up with purpose.</p></div>
+  <div class="about-content"><h2 id="about-title">${about_heading_lines[0] | h}<br><span>${about_heading_lines[1] | h}</span></h2><p>${home['about_description'] | h}</p></div>
 </section>
 
 <section class="contact-section decorated-section" id="contact" aria-labelledby="contact-title">
   ${self.decoration_layer('contact')}
-  <div class="contact-shell"><div class="contact-copy"><p class="eyebrow">START A CONVERSATION</p><h2 id="contact-title">Let’s create<br>your next move.</h2><p>Tell us what you’re building and where you need support.</p></div>
+  <div class="contact-shell"><div class="contact-copy"><p class="eyebrow">START A CONVERSATION</p><h2 id="contact-title">${contact_heading_lines[0] | h}<br><span>${contact_heading_lines[1] | h}</span></h2><p>${home['contact_description'] | h}</p></div>
     <div class="contact-details">
       <div class="contact-detail"><span>BUSINESS EMAIL</span>
         % if agency['email']:
-          <a href="mailto:${agency['email']}">${agency['email']}</a>
+          <a href="mailto:${agency['email'] | h}">${agency['email'] | h}</a>
         % else:
           <p class="contact-placeholder">[Business email placeholder]</p>
         % endif
       </div>
       <div class="contact-detail"><span>WHATSAPP</span>
         % if agency['whatsapp_url']:
-          <a href="${agency['whatsapp_url']}" target="_blank" rel="noopener noreferrer">Message us <span aria-hidden="true">↗</span></a>
+          <a href="${agency['whatsapp_url'] | h}" target="_blank" rel="noopener noreferrer">Message us <span aria-hidden="true">↗</span></a>
         % else:
           <p class="contact-placeholder">[WhatsApp URL placeholder]</p>
         % endif
@@ -134,12 +158,21 @@
 </section>
 
 <footer class="site-footer">
-  <div class="footer-main"><div><a class="wordmark footer-wordmark" href="#top">${agency['name']}</a><p>${agency['positioning']}</p></div>
+  <div class="footer-main"><div><a class="wordmark footer-wordmark" href="#top">${agency['name'] | h}</a><p>${(agency['footer_text'] or agency['positioning']) | h}</p>
+    <div class="footer-socials">
+      % if agency.get('instagram_url'):
+        <a href="${agency['instagram_url'] | h}" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
+      % endif
+      % if agency.get('linkedin_url'):
+        <a href="${agency['linkedin_url'] | h}" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+      % endif
+    </div>
+  </div>
     <nav class="footer-navigation" aria-label="Footer navigation">
       % for item in navigation:
-        <a href="${item['href']}">${item['label']}</a>
+        <a href="${item['href'] | h}">${item['label'] | h}</a>
       % endfor
     </nav>
   </div>
-  <div class="footer-bottom"><span>© ${year} ${agency['name']}. All rights reserved.</span><span>Based in Oman <span aria-hidden="true">✳</span></span></div>
+  <div class="footer-bottom"><span>© ${year} ${agency['name'] | h}. All rights reserved.</span><span>Based in Oman <span aria-hidden="true">✳</span></span></div>
 </footer>

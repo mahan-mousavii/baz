@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="${agency['positioning']} Based in Oman.">
+    <meta name="description" content="${agency['positioning'] | h} Based in Oman.">
     <meta name="theme-color" content="#153A42">
-    <title>${agency['name']} — Creative Marketing Agency · Oman</title>
+    <title>${agency['name'] | h} — Creative Marketing Agency · Oman</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -19,7 +19,11 @@
   </head>
   <body id="top" x-data="{ menuOpen: false }" @keydown.escape.window="menuOpen = false">
     <header class="site-header">
-      <a class="wordmark" href="#top" aria-label="${agency['name']} home">${agency['name']}</a>
+      % if agency.get('logo_asset_id'):
+        <a class="wordmark wordmark-image" href="#top" aria-label="${agency['name'] | h} home"><img src="/media/${agency['logo_asset_id'] | h}" alt="${agency['name'] | h}"></a>
+      % else:
+        <a class="wordmark" href="#top" aria-label="${agency['name'] | h} home">${agency['name'] | h}</a>
+      % endif
       <button class="menu-toggle" type="button" @click="menuOpen = !menuOpen" :aria-expanded="menuOpen" aria-controls="primary-navigation" aria-label="Toggle navigation">
         <span></span><span></span>
       </button>
