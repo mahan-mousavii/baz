@@ -89,6 +89,17 @@ def validate_content(kind, form, session):
             'eyebrow': _text(form, 'eyebrow', 'Hero eyebrow', 120),
             'headline': _two_line_text(form, 'headline', 'Hero headline', 180),
             'hero_description': _text(form, 'hero_description', 'Hero description', 500),
+            'hero_visual_asset_id': _asset(
+                session, form.get('hero_visual_asset_id'), 'Hero visual',
+                mime_prefix='image/',
+            ),
+            'hero_visual_alt': _text(
+                form, 'hero_visual_alt', 'Hero visual alt text', 300,
+                required=False,
+            ),
+            'hero_visual_decorative': str(
+                form.get('hero_visual_decorative', '')
+            ).lower() in {'1', 'true', 'yes', 'on'},
             'primary_cta_label': _text(form, 'primary_cta_label', 'Primary button label', 80),
             'primary_cta_href': _url(
                 _text(form, 'primary_cta_href', 'Primary button destination', 500),
@@ -256,7 +267,10 @@ def referenced_asset_ids(session, *, published_only=False):
         for snapshot in snapshots:
             if not snapshot:
                 continue
-            for key in ('logo_asset_id', 'cover_asset_id', 'file_asset_id'):
+            for key in (
+                'logo_asset_id', 'cover_asset_id', 'file_asset_id',
+                'hero_visual_asset_id',
+            ):
                 if snapshot.get(key):
                     result.add(snapshot[key])
             result.update(snapshot.get('additional_asset_ids', []))
@@ -271,6 +285,9 @@ def _initial_content():
             'We help businesses in Oman turn ideas into thoughtful marketing, '
             'compelling content, and distinctive visual experiences.'
         ),
+        'hero_visual_asset_id': '',
+        'hero_visual_alt': '',
+        'hero_visual_decorative': False,
         'primary_cta_label': 'Explore Our Services',
         'primary_cta_href': '#services-work',
         'secondary_cta_label': 'Explore Free Tools',
@@ -437,6 +454,20 @@ def public_homepage(session):
         if home_record
         else dict.fromkeys(_initial_content()[0][2], '')
     )
+    hero_visual_id = home.get('hero_visual_asset_id')
+    hero_visual = (
+        session.get(MediaAsset, hero_visual_id) if hero_visual_id else None
+    )
+    if home.get('hero_visual_decorative'):
+        home['hero_visual_alt'] = ''
+    elif not home.get('hero_visual_alt'):
+        home['hero_visual_alt'] = (
+            hero_visual.alt_text
+            if hero_visual and not hero_visual.decorative
+            else ''
+        )
+    home['hero_visual_width'] = hero_visual.width if hero_visual else None
+    home['hero_visual_height'] = hero_visual.height if hero_visual else None
     settings = (
         dict(settings_record.published_data)
         if settings_record

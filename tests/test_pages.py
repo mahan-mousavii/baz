@@ -10,10 +10,22 @@ def test_home_page(httpreq):
             in response.text
         )
         assert (
-            '<h1 id="home-title">Clear strategy.<br>'
-            '<span>Distinctive content.</span></h1>'
+            '<h1 id="home-title"><span class="hero-title-line '
+            'hero-title-line-first">Clear strategy.</span> '
+            '<span class="hero-title-line hero-title-line-second">'
+            '<span class="hero-title-accent">Distinctive</span> '
+            'content.</span></h1>'
             in response.text
         )
+        assert (
+            'We help businesses in Oman turn ideas into thoughtful '
+            'marketing, compelling content, and distinctive visual '
+            'experiences.' in response.text
+        )
+        assert 'Independent thinking, rooted in Oman.' in response.text
+        assert 'href="#services-work">Explore Our Services' in response.text
+        assert 'href="#free-tools">Explore Free Tools' in response.text
+        assert 'src="/media/' not in response.text
         assert (
             '<h2 id="services-title">From clear direction to creative '
             'execution.</h2>'
@@ -35,13 +47,11 @@ def test_home_page(httpreq):
         ):
             assert service in response.text
         assert response.text.count('class="service-row"') == 4
-        assert response.text.count('class="decorative-layer"') == 5
-        for icon in (
-            'decor-camera', 'decor-sparkles', 'decor-clapperboard',
-            'decor-pen-tool', 'decor-megaphone', 'decor-message-circle',
-            'decor-aperture', 'decor-bar-chart', 'decor-video',
-        ):
-            assert icon in response.text
+        assert 'class="decorative-layer"' not in response.text
+        assert 'hero-composition' not in response.text
+        assert 'composition-disc' not in response.text
+        assert 'road-sun' not in response.text
+        assert 'ritual-vessel' not in response.text
         assert 'One-Page Marketing Plan' in response.text
         assert '30-Day Content Calendar' in response.text
         assert 'Mobile Video Checklist' in response.text

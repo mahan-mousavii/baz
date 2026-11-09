@@ -47,6 +47,9 @@ FIELD_DEFINITIONS = {
         ('eyebrow', 'Hero eyebrow', 'text', 120),
         ('headline', 'Hero headline', 'textarea', 180),
         ('hero_description', 'Hero description', 'textarea', 500),
+        ('hero_visual_asset_id', 'Hero visual', 'image_asset', 36),
+        ('hero_visual_alt', 'Hero visual alt text', 'text', 300),
+        ('hero_visual_decorative', 'Hero visual is decorative', 'checkbox', 5),
         ('primary_cta_label', 'Primary button label', 'text', 80),
         ('primary_cta_href', 'Primary button destination', 'text', 500),
         ('secondary_cta_label', 'Secondary button label', 'text', 80),
@@ -108,6 +111,7 @@ FIELD_DEFINITIONS = {
 FIELD_GROUPS = {
     'home': (
         ('Hero message and calls to action', 'Shape the first message and its two homepage links.', ('eyebrow', 'headline', 'hero_description', 'primary_cta_label', 'primary_cta_href', 'secondary_cta_label', 'secondary_cta_href')),
+        ('Hero visual', 'Choose an image to sit beside the homepage message.', ('hero_visual_asset_id', 'hero_visual_alt', 'hero_visual_decorative')),
         ('Services and work', 'Set the section introductions shown above services and selected work.', ('services_heading', 'services_intro', 'portfolio_heading', 'portfolio_intro')),
         ('Free resources', 'Describe the resource section on the homepage.', ('resources_heading', 'resources_intro')),
         ('About the agency', 'Share the agency approach in a short introduction.', ('about_heading', 'about_description')),
@@ -136,10 +140,12 @@ OPTIONAL_FIELDS = {
     'logo_asset_id', 'business_email', 'whatsapp_url', 'instagram_url',
     'linkedin_url', 'footer_text', 'cover_asset_id', 'cover_alt',
     'additional_asset_ids', 'file_asset_id', 'external_url',
+    'hero_visual_asset_id', 'hero_visual_alt',
 }
 FORM_NAMES = {
     'csrf', 'action', 'record_id', 'display_order', 'visible', 'confirm_delete',
     'eyebrow', 'headline', 'hero_description', 'primary_cta_label',
+    'hero_visual_asset_id', 'hero_visual_alt', 'hero_visual_decorative',
     'primary_cta_href', 'secondary_cta_label', 'secondary_cta_href',
     'services_heading', 'services_intro', 'portfolio_heading', 'portfolio_intro',
     'resources_heading', 'resources_intro', 'about_heading', 'about_description',
@@ -520,7 +526,9 @@ def _editor_context(section, req, *, error=None, notice=None, submitted=None):
                         data[name] = submitted.get(name, '')
             entry_options = dict(options)
             if submitted and submitted.get('record_id') == record.id:
-                for name in ('logo_asset_id', 'cover_asset_id'):
+                for name in (
+                    'logo_asset_id', 'cover_asset_id', 'hero_visual_asset_id',
+                ):
                     posted_id = submitted.get(name)
                     if posted_id and not any(item['value'] == posted_id for item in entry_options['images']):
                         asset = session.get(MediaAsset, posted_id)
@@ -535,6 +543,7 @@ def _editor_context(section, req, *, error=None, notice=None, submitted=None):
                             }]
             for asset_id in (
                 data.get('logo_asset_id'), data.get('cover_asset_id'),
+                data.get('hero_visual_asset_id'),
                 *(data.get('additional_asset_ids') or []),
             ):
                 if asset_id and not any(item['value'] == asset_id for item in entry_options['images']):

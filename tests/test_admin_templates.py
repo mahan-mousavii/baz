@@ -38,6 +38,7 @@ def _field_data(kind):
             values[name] = f'{name} value'
     if kind == 'home':
         values['headline'] = '<script>Keep this escaped</script>'
+        values['hero_visual_asset_id'] = 'image-asset-id'
     if kind == 'service':
         values['icon'] = 'strategy'
     if kind == 'portfolio':
@@ -114,6 +115,19 @@ def test_admin_editor_include_preserves_field_escaping_and_controls():
     assert '<script>Keep this escaped</script>' not in rendered
     assert 'name="headline"' in rendered
     assert 'name="hero_description"' in rendered
+
+
+def test_home_editor_renders_the_hero_visual_media_control():
+    rendered = _render_editor('home')
+
+    assert 'Hero visual' in rendered
+    assert 'name="hero_visual_asset_id" value="image-asset-id"' in rendered
+    assert 'data-current-filename="cover.jpg · 12 KB"' in rendered
+    assert 'name="hero_visual_alt"' in rendered
+    assert 'name="hero_visual_decorative"' in rendered
+    assert 'Choose from Media Library' in rendered
+    assert 'Upload new image' in rendered
+    assert 'Remove image' in rendered
 
 
 def test_image_fields_render_library_upload_remove_and_accessible_picker_controls():

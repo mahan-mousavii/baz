@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="${agency['positioning'] | h} Based in Oman.">
-    <meta name="theme-color" content="#153A42">
+    <meta name="theme-color" content="#FFFFFF">
     <title>${agency['name'] | h} — Creative Marketing Agency · Oman</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

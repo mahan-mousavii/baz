@@ -3,7 +3,6 @@ from datetime import date
 from sqlalchemy.exc import SQLAlchemyError
 
 from .cms.content import fallback_homepage, public_homepage
-from .homepage import DECORATIONS
 from .rollup import app
 
 
@@ -21,11 +20,17 @@ def get(req):
         page = fallback_homepage()
 
     headline_lines = (page['home'].get('headline', '').splitlines() + ['', ''])[:2]
+    headline_emphasis, separator, headline_remainder = (
+        headline_lines[1].partition(' ')
+    )
     for key in ('resources_heading', 'about_heading', 'contact_heading'):
         page[f'{key}_lines'] = (page['home'].get(key, '').splitlines() + ['', ''])[:2]
     page.update({
-        'decorations': DECORATIONS,
         'headline_lines': headline_lines[:2],
+        'headline_emphasis': headline_emphasis,
+        'headline_remainder': (
+            f'{separator}{headline_remainder}' if separator else ''
+        ),
         'year': date.today().year,
     })
     return page

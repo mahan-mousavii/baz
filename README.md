@@ -48,14 +48,16 @@ The application needs PostgreSQL for content and login rate limits, Redis for yh
 ## CMS workflow
 
 - Use `/admin/home`, `/admin/services`, `/admin/portfolio`, `/admin/resources`, `/admin/media`, and `/admin/settings` to manage the homepage content.
-- The image picker is available on the agency logo, portfolio cover, and resource cover fields. Select from the library, upload an image from the field, or remove that section's reference. Uploading or changing a selection does not publish it; use Save draft or Publish on the relevant entry.
+- The image picker is available on the homepage hero visual, agency logo, portfolio cover, and resource cover fields. Select from the library, upload an image from the field, or remove that section's reference. Uploading or changing a selection does not publish it; use Save draft or Publish on the relevant entry.
 - `/admin/media` is the central library for image and resource uploads. Search by filename and use the previous/next controls to browse large libraries. Supported uploads are JPG/JPEG, PNG, WEBP, PDF, DOCX, XLSX, and CSV; files are limited to 10 MB and images to 30 megapixels.
 - Removing an image from an editor clears only that content reference. Replacing an image or clearing a field does not delete the library file, so media can be reused safely by multiple entries.
-- The hero composition, service and decorative section icons, and other abstract homepage artwork are code-drawn presentation assets, not editable content images. They are intentionally excluded from the media library.
+- Manage the conceptual homepage image under `/admin/home` > **Hero visual**. You can select an existing library image, upload a new one, set placement alt text or mark it decorative, and save it as a draft before publishing. The image is optional; existing home content stays text-only until you select and publish one.
 - Save Draft stores editable changes without changing the public homepage. Publish atomically replaces the published snapshot. Archived, hidden, draft-only, and unavailable resources stay out of public output.
 - Media uploads are limited to 10 MB and validated by actual file content. Supported images are JPG, PNG, and WEBP. Resource downloads are PDF, DOCX, XLSX, and CSV. SVG and executable files are rejected.
 - The media directory is private. Public homepage images are served only when a published visible item references them. Available resource files are streamed through `/resources/<slug>/download`; uploads do not become public just because they exist.
 - Image placements can override alt text or mark that placement decorative. The media library keeps a separate default alt value and decorative setting. Resource download files are selected from the existing file field and remain private until their resource is published as available.
+
+The repository includes an optimized conceptual hero image at `public/images/hero-clarity-to-distinction.webp`. To use it, open `/admin/media` and upload that file, then select it under `/admin/home` > **Hero visual**. Give it descriptive alt text (for example, “Layered paper forms opening into an expressive shape”) or mark it decorative, then **Save draft** and **Publish**. The built-in image is not automatically attached or published. Clearing the Hero visual field removes the homepage reference; it does not delete the library asset. This content change needs no database migration.
 
 ## Database and migrations
 

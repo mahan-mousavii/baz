@@ -57,28 +57,6 @@ SERVICES = (
     },
 )
 
-DECORATIONS = {
-    'hero': (
-        ('camera', 'decor-camera'),
-        ('sparkles', 'decor-sparkles'),
-    ),
-    'services': (
-        ('clapperboard', 'decor-clapperboard'),
-        ('pen-tool', 'decor-pen-tool'),
-    ),
-    'tools': (
-        ('megaphone', 'decor-megaphone'),
-        ('message-circle', 'decor-message-circle'),
-    ),
-    'about': (
-        ('aperture', 'decor-aperture'),
-        ('bar-chart', 'decor-bar-chart'),
-    ),
-    'contact': (
-        ('video', 'decor-video'),
-    ),
-}
-
 PROJECTS = (
     {
         'number': '01',

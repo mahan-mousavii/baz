@@ -9,6 +9,7 @@ from yhttp_ssr_boilerplate.cms.content import (
     publish_record,
     public_homepage,
     record_status,
+    referenced_asset_ids,
     seed_records,
     validate_content,
 )
@@ -63,6 +64,94 @@ def test_homepage_uses_published_snapshot_until_publish(cms_session):
         assert record_status(home) == 'Published'
 
     assert public_homepage(cms_session)['home']['hero_description'] == 'Draft only'
+
+
+def test_home_hero_visual_draft_publish_and_removal_preserve_media(cms_session):
+    asset_id = '8b0b0f67-0b5a-4c86-9271-4e198971e42f'
+    with cms_session.begin():
+        seed_records(cms_session)
+        home = cms_session.scalar(
+            select(CMSRecord).where(CMSRecord.kind == 'home')
+        )
+        cms_session.add(MediaAsset(
+            id=asset_id,
+            storage_key=asset_id,
+            original_filename='hero-visual.webp',
+            mime_type='image/webp',
+            file_size=1200,
+            width=1200,
+            height=800,
+            alt_text='Layered paper forms opening into an expressive shape.',
+            decorative=False,
+        ))
+        draft = dict(home.draft_data)
+        draft.update(hero_visual_asset_id=asset_id, hero_visual_alt='')
+        home.draft_data = validate_content('home', draft, cms_session)
+
+    draft_page = public_homepage(cms_session)
+    assert not draft_page['home']['hero_visual_asset_id']
+    assert asset_id in referenced_asset_ids(cms_session)
+    assert asset_id not in referenced_asset_ids(
+        cms_session, published_only=True,
+    )
+    cms_session.rollback()
+
+    with cms_session.begin():
+        home = cms_session.scalar(
+            select(CMSRecord).where(CMSRecord.kind == 'home')
+        )
+        publish_record(home)
+
+    published = public_homepage(cms_session)['home']
+    assert published['hero_visual_asset_id'] == asset_id
+    assert published['hero_visual_alt'] == (
+        'Layered paper forms opening into an expressive shape.'
+    )
+    assert published['hero_visual_width'] == 1200
+    assert published['hero_visual_height'] == 800
+    cms_session.rollback()
+
+    with cms_session.begin():
+        home = cms_session.scalar(
+            select(CMSRecord).where(CMSRecord.kind == 'home')
+        )
+        draft = dict(home.draft_data)
+        draft['hero_visual_decorative'] = True
+        home.draft_data = validate_content('home', draft, cms_session)
+        publish_record(home)
+
+    assert public_homepage(cms_session)['home']['hero_visual_alt'] == ''
+    cms_session.rollback()
+
+    with cms_session.begin():
+        home = cms_session.scalar(
+            select(CMSRecord).where(CMSRecord.kind == 'home')
+        )
+        draft = dict(home.draft_data)
+        draft.update(
+            hero_visual_asset_id='',
+            hero_visual_alt='',
+            hero_visual_decorative=False,
+        )
+        home.draft_data = validate_content('home', draft, cms_session)
+
+    assert public_homepage(cms_session)['home']['hero_visual_asset_id'] == asset_id
+    assert cms_session.get(MediaAsset, asset_id) is not None
+    cms_session.rollback()
+
+    with cms_session.begin():
+        home = cms_session.scalar(
+            select(CMSRecord).where(CMSRecord.kind == 'home')
+        )
+        publish_record(home)
+
+    removed = public_homepage(cms_session)['home']
+    assert not removed['hero_visual_asset_id']
+    assert asset_id not in referenced_asset_ids(
+        cms_session, published_only=True,
+    )
+    cms_session.rollback()
+    assert cms_session.get(MediaAsset, asset_id) is not None
 
 
 def test_unpublished_and_hidden_records_do_not_reach_public_homepage(cms_session):
