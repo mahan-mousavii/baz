@@ -3,7 +3,7 @@ import functools
 import bddrest
 import pytest
 
-import yhttp_ssr_boilerplate
+import mahnil
 
 
 pytest_plugins = ['yhttp.dev.fixtures']
@@ -11,7 +11,7 @@ pytest_plugins = ['yhttp.dev.fixtures']
 
 @pytest.fixture
 def app(freshdb, tmp_path):
-    yhttp_ssr_boilerplate.app.settings |= f'''
+    mahnil.app.settings |= f'''
 db:
   url: {freshdb}
 mako:
@@ -19,10 +19,10 @@ mako:
 media:
   directory: {tmp_path / 'media'}
 '''
-    yhttp_ssr_boilerplate.app.ready()
-    yhttp_ssr_boilerplate.app.db.create_objects()
-    yield yhttp_ssr_boilerplate.app
-    yhttp_ssr_boilerplate.app.shutdown()
+    mahnil.app.ready()
+    mahnil.app.db.create_objects()
+    yield mahnil.app
+    mahnil.app.shutdown()
 
 
 @pytest.fixture

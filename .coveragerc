@@ -1,5 +1,5 @@
 [run]
-source = yhttp_ssr_boilerplate
+source = mahnil
 patch = subprocess
 
 [report]

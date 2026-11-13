@@ -1,8 +1,8 @@
 {
-  "name": "yhttp-ssr-boilerplate",
+  "name": "mahnil-digital",
   "version": "0.1.0",
   "private": true,
-  "description": "Browser assets for a YHTTP SSR starter application.",
+  "description": "Browser assets for the Mahnil Digital website and CMS.",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",

@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@source '../yhttp_ssr_boilerplate/templates/**/*.mako';
+@source '../mahnil/templates/**/*.mako';
 
 [x-cloak] {
   display: none !important;

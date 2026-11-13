@@ -8,9 +8,9 @@ from yhttp.ext.auth import AccessToken
 
 from bddrest import response, status
 
-from yhttp_ssr_boilerplate.cms.admin import FIELD_DEFINITIONS
-from yhttp_ssr_boilerplate.cms.content import seed_records
-from yhttp_ssr_boilerplate.common.models import CMSRecord, MediaAsset
+from mahnil.cms.admin import FIELD_DEFINITIONS
+from mahnil.cms.content import seed_records
+from mahnil.common.models import CMSRecord, MediaAsset
 
 
 def use_production(app, monkeypatch):

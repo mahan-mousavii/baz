@@ -5,18 +5,18 @@ from setuptools import find_packages, setup
 
 
 root = os.path.dirname(__file__)
-with open(os.path.join(root, 'yhttp_ssr_boilerplate', 'manifest.py')) as f:
+with open(os.path.join(root, 'mahnil', 'manifest.py')) as f:
     version = re.compile(r".*__version__ = '(.*?)'", re.S).match(
         f.read(),
     ).group(1)
 
 setup(
-    name='yhttp-ssr-boilerplate',
+    name='mahnil',
     version=version,
-    description='A server-side-rendered YHTTP starter application.',
+    description='Mahnil Digital creative agency website and CMS.',
     packages=find_packages(where='.', exclude=['tests']),
     package_data={
-        'yhttp_ssr_boilerplate': [
+        'mahnil': [
             'templates/**/*.mako',
             'dbmigration/*.py',
         ],
@@ -33,7 +33,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'yhttp-ssr-boilerplate = yhttp_ssr_boilerplate:app.climain',
+            'mahnil = mahnil:app.climain',
         ],
     },
     python_requires='>=3.11',

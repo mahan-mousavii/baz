@@ -6,7 +6,7 @@ def test_home_page(httpreq):
         assert status == 200
         assert '<html lang="en">' in response.text
         assert (
-            '<title>[Agency Name] — Creative Marketing Agency · Oman</title>'
+            '<title>Mahnil Digital — Creative Marketing Agency · Oman</title>'
             in response.text
         )
         assert (

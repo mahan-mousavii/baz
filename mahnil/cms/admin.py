@@ -268,7 +268,7 @@ def get(req):
         'configured': bool(_configured_credentials()),
         'error': None,
         'show_navigation': False,
-        'agency_name': '[Agency Name]',
+        'agency_name': 'Mahnil Digital',
     }
 
 

@@ -1,7 +1,7 @@
 import json
 from types import SimpleNamespace
 
-from yhttp_ssr_boilerplate.assets import urlresolver
+from mahnil.assets import urlresolver
 
 
 def test_asset_url_in_development():

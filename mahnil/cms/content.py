@@ -482,8 +482,11 @@ def public_homepage(session):
             'footer_text': '',
         }
     )
+    agency_name = settings.get('agency_name') or AGENCY['name']
+    if agency_name.strip().casefold() == '[agency name]':
+        agency_name = AGENCY['name']
     agency = {
-        'name': settings.get('agency_name') or AGENCY['name'],
+        'name': agency_name,
         'positioning': settings.get('description') or AGENCY['positioning'],
         'email': settings.get('business_email') or None,
         'whatsapp_url': settings.get('whatsapp_url') or None,

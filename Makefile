@@ -1,4 +1,4 @@
-PKG_NAME = yhttp-ssr-boilerplate
+PKG_NAME = mahnil
 PYTEST_FLAGS = -vv
 PYDEPS_COMMON = \
 	'coveralls >= 4.1.0' \
@@ -46,7 +46,7 @@ run-backend:
 .PHONY: run
 run:
 	$(PREFIX)/bin/$(PKG_NAME) -Odebug=True serve \
-		--watch-directories 'yhttp_ssr_boilerplate/**' \
-		--watch-excludedirectory 'yhttp_ssr_boilerplate/templates/*' \
+		--watch-directories 'mahnil/**' \
+		--watch-excludedirectory 'mahnil/templates/*' \
 		--watch-excludefile '*.md' \
 		--subprocess "$(NPM) run dev"

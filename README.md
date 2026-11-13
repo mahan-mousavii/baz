@@ -1,6 +1,6 @@
-# YHTTP SSR Boilerplate
+# Mahnil Digital
 
-A server-side-rendered creative agency homepage built with YHTTP, Mako, Tailwind CSS v4, and Alpine.js. The custom CMS edits the existing homepage; it does not create additional public pages.
+A server-side-rendered creative agency website built with YHTTP, Mako, Tailwind CSS v4, and Alpine.js. The custom CMS edits the existing homepage; it does not create additional public pages.
 
 ## Local development
 
@@ -21,7 +21,7 @@ The application needs PostgreSQL for content and login rate limits, Redis for yh
    python -c 'import secrets; print(secrets.token_urlsafe(48))'
    ```
 
-   Paste that value into `YHTTP_AUTH_ACCESS_SECRET`. Keep `.env` private; it is ignored by Git. Set `DATABASE_URL` to the PostgreSQL database you created. The example targets a local PostgreSQL server and a database named `yhttp-ssr-boilerplate`; adjust it for your local authentication settings.
+   Paste that value into `YHTTP_AUTH_ACCESS_SECRET`. Keep `.env` private; it is ignored by Git. Set `DATABASE_URL` to the PostgreSQL database you created. The example targets a local PostgreSQL server and a database named `mahnil-digital`; adjust it for your local authentication settings.
 
    Set `YHTTP_ADMIN_USERNAME` and `YHTTP_ADMIN_PASSWORD` in `.env` as well. The application does not load `.env` automatically: export its values in the same shell before starting the server. Restrict the file to your account with `chmod 600 .env`.
 
@@ -31,8 +31,8 @@ The application needs PostgreSQL for content and login rate limits, Redis for yh
    set -a
    . ./.env
    set +a
-   yhttp-ssr-boilerplate db migration upgrade
-   python -m yhttp_ssr_boilerplate.seed_content
+   mahnil db migration upgrade
+   python -m mahnil.seed_content
    ```
 
    The seed inserts the Phase 1/2 homepage, four services, two concept previews, three coming-soon resources, and general settings only when each record is absent. Running it again leaves admin edits intact.
@@ -61,10 +61,10 @@ The repository includes an optimized conceptual hero image at `public/images/her
 
 ## Database and migrations
 
-The CMS uses the existing SQLAlchemy/PostgreSQL integration. Schema changes are versioned under `yhttp_ssr_boilerplate/dbmigration/` and applied with:
+The CMS uses the existing SQLAlchemy/PostgreSQL integration. Schema changes are versioned under `mahnil/dbmigration/` and applied with:
 
 ```sh
-yhttp-ssr-boilerplate db migration upgrade
+mahnil db migration upgrade
 ```
 
 Do not run `db create` or `db drop` against an existing production database. Back up before deploying a schema migration.

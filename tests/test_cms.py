@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from yhttp_ssr_boilerplate.cms.content import (
+from mahnil.cms.content import (
     publish_record,
     public_homepage,
     record_status,
@@ -13,9 +13,9 @@ from yhttp_ssr_boilerplate.cms.content import (
     seed_records,
     validate_content,
 )
-from yhttp_ssr_boilerplate.cms.storage import MediaStorage
-from yhttp_ssr_boilerplate.cms.uploads import InvalidUpload, inspect_upload
-from yhttp_ssr_boilerplate.common.models import BaseModel, CMSRecord, MediaAsset
+from mahnil.cms.storage import MediaStorage
+from mahnil.cms.uploads import InvalidUpload, inspect_upload
+from mahnil.common.models import BaseModel, CMSRecord, MediaAsset
 
 
 @pytest.fixture
@@ -64,6 +64,27 @@ def test_homepage_uses_published_snapshot_until_publish(cms_session):
         assert record_status(home) == 'Published'
 
     assert public_homepage(cms_session)['home']['hero_description'] == 'Draft only'
+
+
+def test_legacy_agency_placeholder_renders_current_brand_without_rewriting_data(
+    cms_session,
+):
+    with cms_session.begin():
+        seed_records(cms_session)
+        settings = cms_session.scalar(
+            select(CMSRecord).where(CMSRecord.kind == 'settings')
+        )
+        settings.published_data = dict(
+            settings.published_data, agency_name='[Agency Name]',
+        )
+
+    assert public_homepage(cms_session)['agency']['name'] == 'Mahnil Digital'
+    cms_session.rollback()
+
+    settings = cms_session.scalar(
+        select(CMSRecord).where(CMSRecord.kind == 'settings')
+    )
+    assert settings.published_data['agency_name'] == '[Agency Name]'
 
 
 def test_home_hero_visual_draft_publish_and_removal_preserve_media(cms_session):

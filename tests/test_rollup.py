@@ -1,12 +1,12 @@
 from types import SimpleNamespace
 
-from yhttp_ssr_boilerplate.rollup import app as application
+from mahnil.rollup import app as application
 
 
 ready = next(
     callback
     for callback in application.events['ready']
-    if callback.__module__ == 'yhttp_ssr_boilerplate.rollup'
+    if callback.__module__ == 'mahnil.rollup'
 )
 
 

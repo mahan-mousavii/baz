@@ -1,5 +1,5 @@
 <%inherit file="admin_master.mako" />
-<%block name="title">Admin sign in — [Agency Name]</%block>
+<%block name="title">Admin sign in — Mahnil Digital</%block>
 
 <main class="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-5 py-16">
   <a class="mb-10 w-fit text-sm text-slate-600 hover:text-slate-900" href="/">← Back to the website</a>

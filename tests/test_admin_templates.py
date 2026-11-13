@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 from mako.lookup import TemplateLookup
 
-from yhttp_ssr_boilerplate.cms.admin import (
+from mahnil.cms.admin import (
     FIELD_DEFINITIONS,
     SECTION_TO_KIND,
     _field_groups,
@@ -14,7 +14,7 @@ from yhttp_ssr_boilerplate.cms.admin import (
 
 
 TEMPLATE_DIRECTORY = (
-    Path(__file__).parents[1] / 'yhttp_ssr_boilerplate' / 'templates'
+    Path(__file__).parents[1] / 'mahnil' / 'templates'
 )
 LOOKUP = TemplateLookup(directories=[str(TEMPLATE_DIRECTORY)])
 ASSET_OPTIONS = {

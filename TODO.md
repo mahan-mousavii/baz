@@ -1,5 +1,5 @@
 ## task1
-- create a yhttp ssr boilerplate project using yttp-skill.
+- create the Mahnil Digital YHTTP SSR project using yttp-skill.
 - take a look at ../reelio to know how to create the project.
 - import everything from the reelio project such as:
   - Makefile
@@ -90,7 +90,8 @@ Avoid:
 
 ## Step 3 — Build the Header and Navigation
 
-Use a temporary text wordmark: [Agency Name].
+Use “Mahnil Digital” as the text wordmark. Keep the name easy to
+replace in one central configuration.
 Keep the name easy to replace in one central configuration.
 
 Desktop navigation:

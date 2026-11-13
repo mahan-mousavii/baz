@@ -5,9 +5,9 @@ import pytest
 from bddrest import Given
 from sqlalchemy import create_engine, select
 
-from yhttp_ssr_boilerplate import app as application
-from yhttp_ssr_boilerplate.cms.content import seed_records
-from yhttp_ssr_boilerplate.common.models import CMSRecord, MediaAsset
+from mahnil import app as application
+from mahnil.cms.content import seed_records
+from mahnil.common.models import CMSRecord, MediaAsset
 
 
 class CsrfInputParser(HTMLParser):

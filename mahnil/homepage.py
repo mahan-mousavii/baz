@@ -1,7 +1,7 @@
 """Homepage copy and replaceable agency configuration."""
 
 AGENCY = {
-    'name': '[Agency Name]',
+    'name': 'Mahnil Digital',
     'positioning': 'Thoughtful marketing. Distinctive creative.',
     'email': None,
     'whatsapp_url': None,
